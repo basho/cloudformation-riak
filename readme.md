@@ -66,7 +66,7 @@ This builds upon the riak-vpc-cluster with the addition of a set of load balance
 
 Once the stack is completed, check the outputs of the stack to find the BastionIP address.  This is the IP address that you must ssh to first before reaching the Riak nodes.  It will build the number of instances specified in RiakClusterSize, FrontendClusterSize, 1 NAT instance, and 1 Bastion instance.
 
-Also in the outputs you will find the Bastion Host IP and the 
+Also in the outputs you will find the Bastion Host IP and the Website URL to access Riagi.
 
 
 The filename for this receipe is **riak-vpc-cluster-with-frontend-appservers.json** . 

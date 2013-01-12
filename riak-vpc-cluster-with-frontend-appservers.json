@@ -1,0 +1,1795 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09", 
+  "Description": "Launches a Riak Cluster", 
+  "Mappings": {
+    "AWSInstanceType2Arch": {
+      "c1.medium": {
+        "Arch": "64"
+      }, 
+      "c1.xlarge": {
+        "Arch": "64"
+      }, 
+      "cc1.4xlarge": {
+        "Arch": "64Cluster"
+      }, 
+      "cc2.8xlarge": {
+        "Arch": "64Cluster"
+      }, 
+      "cg1.4xlarge": {
+        "Arch": "64GPU"
+      }, 
+      "m1.large": {
+        "Arch": "64"
+      }, 
+      "m1.medium": {
+        "Arch": "64"
+      }, 
+      "m1.small": {
+        "Arch": "64"
+      }, 
+      "m1.xlarge": {
+        "Arch": "64"
+      }, 
+      "m2.2xlarge": {
+        "Arch": "64"
+      }, 
+      "m2.4xlarge": {
+        "Arch": "64"
+      }, 
+      "m2.xlarge": {
+        "Arch": "64"
+      }, 
+      "t1.micro": {
+        "Arch": "64"
+      }
+    }, 
+    "AWSNATAMI": {
+      "ap-northeast-1": {
+        "AMI": "ami-14d86d15"
+      }, 
+      "ap-southeast-1": {
+        "AMI": "ami-02eb9350"
+      }, 
+      "eu-west-1": {
+        "AMI": "ami-0b5b6c7f"
+      }, 
+      "sa-east-1": {
+        "AMI": "ami-0439e619"
+      }, 
+      "us-east-1": {
+        "AMI": "ami-c6699baf"
+      }, 
+      "us-west-1": {
+        "AMI": "ami-3bcc9e7e"
+      }, 
+      "us-west-2": {
+        "AMI": "ami-52ff7262"
+      }
+    }, 
+    "SubnetConfig": {
+      "Private": {
+        "CIDR": "10.0.1.0/24"
+      }, 
+      "Public": {
+        "CIDR": "10.0.0.0/24"
+      }, 
+      "VPC": {
+        "CIDR": "10.0.0.0/16"
+      }
+    }, 
+    "ebs": {
+      "ap-northeast-1": {
+        "32": "ami-486cd349  ", 
+        "64": "ami-4e6cd34f", 
+        "64Cluster": "NOT_YET_SUPPORTED", 
+        "64GPU": "NOT_YET_SUPPORTED"
+      }, 
+      "ap-southeast-1": {
+        "32": "ami-a2a7e7f0", 
+        "64": "ami-a6a7e7f4", 
+        "64Cluster": "NOT_YET_SUPPORTED", 
+        "64GPU": "NOT_YET_SUPPORTED"
+      }, 
+      "eu-west-1": {
+        "32": "ami-937474e7", 
+        "64": "ami-c37474b7", 
+        "64Cluster": "ami-d97474ad", 
+        "64GPU": "ami-1b02026f"
+      }, 
+      "sa-east-1": {
+        "32": "ami-e209d0ff", 
+        "64": "ami-1e08d103", 
+        "64Cluster": "NOT_YET_SUPPORTED", 
+        "64GPU": "NOT_YET_SUPPORTED"
+      }, 
+      "us-east-1": {
+        "32": "ami-1a249873", 
+        "64": "ami-1624987f", 
+        "64Cluster": "ami-08249861", 
+        "64GPU": "ami-02f54a6b"
+      }, 
+      "us-west-1": {
+        "32": "ami-19f9de5c", 
+        "64": "ami-1bf9de5e", 
+        "64Cluster": "NOT_YET_SUPPORTED", 
+        "64GPU": "NOT_YET_SUPPORTED"
+      }, 
+      "us-west-2": {
+        "32": "ami-2231bf12", 
+        "64": "ami-2a31bf1a", 
+        "64Cluster": "ami-2431bf14", 
+        "64GPU": "NOT_YET_SUPPORTED"
+      }
+    }, 
+    "ephemeral": {
+      "ap-northeast-1": {
+        "32": "ami-586cd359", 
+        "64": "ami-5a6cd35b"
+      }, 
+      "ap-southeast-1": {
+        "32": "ami-aaa7e7f8", 
+        "64": "ami-a8a7e7fa"
+      }, 
+      "eu-west-1": {
+        "32": "ami-cf7474bb", 
+        "64": "ami-b57474c1"
+      }, 
+      "sa-east-1": {
+        "32": "  ami-1a08d107", 
+        "64": "  ami-1608d10b"
+      }, 
+      "us-east-1": {
+        "32": "ami-10249879", 
+        "64": "ami-e8249881"
+      }, 
+      "us-west-1": {
+        "32": "ami-27f9de62", 
+        "64": "ami-21f9de64"
+      }, 
+      "us-west-2": {
+        "32": "ami-2c31bf1c", 
+        "64": "ami-2e31bf1e"
+      }
+    }
+  }, 
+  "Outputs": {
+    "Bastion": {
+      "Description": "IP Address of the Bastion host", 
+      "Value": {
+        "Ref": "BastionIPAddress"
+      }
+    }, 
+    "WebSite": {
+      "Description": "URL of the website", 
+      "Value": {
+        "Fn::Join": [
+          "", 
+          [
+            "http://", 
+            {
+              "Fn::GetAtt": [
+                "PublicElasticLoadBalancer", 
+                "DNSName"
+              ]
+            }
+          ]
+        ]
+      }
+    }
+  }, 
+  "Parameters": {
+    "BastionInstanceType": {
+      "AllowedValues": [
+        "t1.micro", 
+        "m1.small", 
+        "m1.medium", 
+        "m1.large", 
+        "m1.xlarge", 
+        "m2.xlarge", 
+        "m2.2xlarge", 
+        "m2.4xlarge", 
+        "c1.medium", 
+        "c1.xlarge", 
+        "cc1.4xlarge", 
+        "cc2.8xlarge", 
+        "cg1.4xlarge"
+      ], 
+      "ConstraintDescription": "must be a valid EC2 instance type.", 
+      "Default": "m1.small", 
+      "Description": "Bastion Host EC2 instance type", 
+      "Type": "String"
+    }, 
+    "DiskType": {
+      "AllowedValues": [
+        "ephemeral", 
+        "ebs"
+      ], 
+      "Default": "ephemeral", 
+      "Description": "Type of Disk to use ( ephemeral/ebs )", 
+      "Type": "String"
+    }, 
+    "FrontendClusterSize": {
+      "Default": "2", 
+      "Description": "Number of EC2 instances to launch for the Frontend cluster.", 
+      "Type": "Number"
+    }, 
+    "FrontendInstanceType": {
+      "AllowedValues": [
+        "t1.micro", 
+        "m1.small", 
+        "m1.medium", 
+        "m1.large", 
+        "m1.xlarge", 
+        "m2.xlarge", 
+        "m2.2xlarge", 
+        "m2.4xlarge", 
+        "c1.medium", 
+        "c1.xlarge", 
+        "cc1.4xlarge", 
+        "cc2.8xlarge", 
+        "cg1.4xlarge"
+      ], 
+      "ConstraintDescription": "must be a valid EC2 instance type.", 
+      "Default": "m1.small", 
+      "Description": "Frontend Server EC2 instance type", 
+      "Type": "String"
+    }, 
+    "KeyName": {
+      "AllowedPattern": "[-_ a-zA-Z0-9]*", 
+      "ConstraintDescription": "can contain only alphanumeric characters, spaces, dashes and underscores.", 
+      "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instances", 
+      "MaxLength": "64", 
+      "MinLength": "1", 
+      "Type": "String"
+    }, 
+    "NATInstanceType": {
+      "AllowedValues": [
+        "t1.micro", 
+        "m1.small", 
+        "m1.medium", 
+        "m1.large", 
+        "m1.xlarge", 
+        "m2.xlarge", 
+        "m2.2xlarge", 
+        "m2.4xlarge", 
+        "c1.medium", 
+        "c1.xlarge", 
+        "cc1.4xlarge", 
+        "cc2.8xlarge", 
+        "cg1.4xlarge"
+      ], 
+      "ConstraintDescription": "must be a valid EC2 instance type.", 
+      "Default": "m1.small", 
+      "Description": "NET Device EC2 instance type", 
+      "Type": "String"
+    }, 
+    "RiakClusterSize": {
+      "Default": "3", 
+      "Description": "Number of EC2 instances to launch for Riak Cluster", 
+      "Type": "Number"
+    }, 
+    "RiakInstanceType": {
+      "AllowedValues": [
+        "t1.micro", 
+        "m1.small", 
+        "m1.medium", 
+        "m1.large", 
+        "m1.xlarge", 
+        "m2.xlarge", 
+        "m2.2xlarge", 
+        "m2.4xlarge", 
+        "c1.medium", 
+        "c1.xlarge", 
+        "cc1.4xlarge", 
+        "cc2.8xlarge", 
+        "cg1.4xlarge"
+      ], 
+      "ConstraintDescription": "must be a valid EC2 instance type.", 
+      "Default": "m1.small", 
+      "Description": "Riak Server EC2 instance type", 
+      "Type": "String"
+    }, 
+    "RingSize": {
+      "AllowedValues": [
+        "64", 
+        "128", 
+        "256", 
+        "512"
+      ], 
+      "Default": "64", 
+      "Description": "Size of the Riak Ring", 
+      "Type": "String"
+    }, 
+    "SSHFrom": {
+      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})", 
+      "ConstraintDescription": "must be a valid CIDR range of the form x.x.x.x/x.", 
+      "Default": "0.0.0.0/0", 
+      "Description": "Lockdown SSH access to the bastion host (default can be accessed from anywhere)", 
+      "MaxLength": "18", 
+      "MinLength": "9", 
+      "Type": "String"
+    }
+  }, 
+  "Resources": {
+    "BackendFleet": {
+      "Properties": {
+        "AvailabilityZones": [
+          {
+            "Fn::GetAtt": [
+              "PrivateSubnet", 
+              "AvailabilityZone"
+            ]
+          }
+        ], 
+        "DesiredCapacity": {
+          "Ref": "RiakClusterSize"
+        }, 
+        "LaunchConfigurationName": {
+          "Ref": "BackendLaunchConfig"
+        }, 
+        "LoadBalancerNames": [
+          {
+            "Ref": "PrivateElasticLoadBalancer"
+          }
+        ], 
+        "MaxSize": "10", 
+        "MinSize": "1", 
+        "Tags": [
+          {
+            "Key": "Network", 
+            "PropagateAtLaunch": "true", 
+            "Value": "Private"
+          }
+        ], 
+        "VPCZoneIdentifier": [
+          {
+            "Ref": "PrivateSubnet"
+          }
+        ]
+      }, 
+      "Type": "AWS::AutoScaling::AutoScalingGroup"
+    }, 
+    "BackendLaunchConfig": {
+      "DependsOn": [
+        "BastionIPAddress", 
+        "NATIPAddress", 
+        "PrivateSubnetRouteTableAssociation", 
+        "PrivateSubnetNetworkAclAssociation"
+      ], 
+      "Properties": {
+        "IamInstanceProfile": {
+          "Ref": "RootInstanceProfile"
+        }, 
+        "ImageId": {
+          "Fn::FindInMap": [
+            {
+              "Ref": "DiskType"
+            }, 
+            {
+              "Ref": "AWS::Region"
+            }, 
+            {
+              "Fn::FindInMap": [
+                "AWSInstanceType2Arch", 
+                {
+                  "Ref": "RiakInstanceType"
+                }, 
+                "Arch"
+              ]
+            }
+          ]
+        }, 
+        "InstanceType": {
+          "Ref": "RiakInstanceType"
+        }, 
+        "KeyName": {
+          "Ref": "KeyName"
+        }, 
+        "SecurityGroups": [
+          {
+            "Ref": "BackendSecurityGroup"
+          }
+        ], 
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "\n", 
+              [
+                "#!/bin/bash -v", 
+                "exec > >(tee /var/log/cfn-data.log|logger -t user-data -s 2>/dev/console) 2>&1", 
+                "", 
+                "sleep 10", 
+                "", 
+                "function retry {", 
+                "   nTrys=0", 
+                "   maxTrys=5", 
+                "   status=256", 
+                "   until [ $status == 0 ] ; do", 
+                "      $1", 
+                "      status=$?", 
+                "      nTrys=$(($nTrys + 1))", 
+                "      if [ $nTrys -gt $maxTrys ] ; then", 
+                "            echo \"Number of re-trys exceeded. Exit code: $status\"", 
+                "            exit $status", 
+                "      fi", 
+                "      if [ $status != 0 ] ; then", 
+                "            echo \"Failed (exit code $status)... retry $nTrys\"", 
+                "            sleep 10", 
+                "      fi", 
+                "   done", 
+                "}", 
+                "", 
+                "yum update -y aws-cfn-bootstrap", 
+                "", 
+                "#for all the stuff that complains about sudo and tty", 
+                "sed -i 's,Defaults    requiretty,#Defaults    requiretty,g' /etc/sudoers", 
+                "", 
+                "function error_exit", 
+                "{", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "  /opt/aws/bin/cfn-signal -e 1 -r \"$1\" '", 
+                      {
+                        "Ref": "BackendWaitHandle"
+                      }, 
+                      "'"
+                    ]
+                  ]
+                }, 
+                "}", 
+                "yum update -y aws-cfn-bootstrap", 
+                "#this runs the first stage of cfinit", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "#/opt/aws/bin/cfn-init -c ascending -v --region ", 
+                      {
+                        "Ref": "AWS::Region"
+                      }, 
+                      " -s ", 
+                      {
+                        "Ref": "AWS::StackName"
+                      }, 
+                      " -r ", 
+                      "BackendLaunchConfig", 
+                      " --access-key ", 
+                      {
+                        "Ref": "HostKeys"
+                      }, 
+                      " --secret-key ", 
+                      {
+                        "Fn::GetAtt": [
+                          "HostKeys", 
+                          "SecretAccessKey"
+                        ]
+                      }, 
+                      " || error_exit 'Failed to initialize client using cfn-init'"
+                    ]
+                  ]
+                }, 
+                "", 
+                "", 
+                "", 
+                "", 
+                "yum install -y rubygems git puppet ruby-devel make gcc", 
+                "gem install hiera hiera-puppet", 
+                "mkdir -p /var/lib/hiera", 
+                "#enables search", 
+                "echo 'search_enabled: true' >> '/var/lib/hiera/common.yaml'", 
+                "", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "echo 'ring_creation_size: ", 
+                      {
+                        "Ref": "RingSize"
+                      }, 
+                      "' >> '/var/lib/hiera/common.yaml'"
+                    ]
+                  ]
+                }, 
+                "", 
+                "mkdir -p /tmp/puppet/modules", 
+                "retry \"git clone http://github.com/basho/puppet-riak -b cfn /tmp/puppet/modules/riak\"", 
+                "retry \"git clone https://github.com/KrisBuytaert/puppet-hiera.git /tmp/puppet/modules/puppet-hiera\"", 
+                "retry \"git clone https://github.com/puppetlabs/puppetlabs-stdlib /tmp/puppet/modules/stdlib\"", 
+                "puppet apply --modulepath=/tmp/puppet/modules -e \"include riak\" --trace --debug --verbose", 
+                "", 
+                "echo \"riak soft nofile 65336\" >> /etc/security/limits.conf", 
+                "echo \"riak hard nofile 65336\" >> /etc/security/limits.conf", 
+                "echo \"root soft nofile 65336\" >> /etc/security/limits.conf", 
+                "echo \"root hard nofile 65336\" >> /etc/security/limits.conf", 
+                "", 
+                "echo \"vm.swappiness = 0\" >> /etc/sysctl.conf", 
+                "echo \"net.ipv4.tcp_max_syn_backlog = 40000\" >> /etc/sysctl.conf", 
+                "echo \"net.core.somaxconn=4000\" >> /etc/sysctl.conf", 
+                "echo \"net.ipv4.tcp_timestamps = 0\" >> /etc/sysctl.conf", 
+                "echo \"net.ipv4.tcp_sack = 1\" >> /etc/sysctl.conf", 
+                "echo \"net.ipv4.tcp_window_scaling = 1\" >> /etc/sysctl.conf", 
+                "echo \"net.ipv4.tcp_fin_timeout = 15\" >> /etc/sysctl.conf", 
+                "echo \"net.ipv4.tcp_keepalive_intvl = 30\" >> /etc/sysctl.conf", 
+                "echo \"net.ipv4.tcp_tw_reuse = 1\" >> /etc/sysctl.conf", 
+                "echo \"+P 256000\" >> /etc/riak/vm.args", 
+                "echo \"+swt very_low\" >> /etc/riak/vm.args", 
+                "echo \"+zdbbl 32768\" >> /etc/riak/vm.args", 
+                "sysctl -p", 
+                "", 
+                "service riak stop", 
+                "service riak start", 
+                "sleep 5", 
+                "", 
+                "wget http://basho-riaktivate.s3.amazonaws.com/join_riak_cluster.py -O /tmp/join_riak_cluster.py", 
+                "chmod 755 /tmp/join_riak_cluster.py", 
+                "/tmp/join_riak_cluster.py", 
+                "search-cmd install riagi-users", 
+                "search-cmd install riagi-image-metadata", 
+                "/usr/sbin/riak ping", 
+                "result_code=$?", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "/opt/aws/bin/cfn-signal -e $result_code '", 
+                      {
+                        "Ref": "BackendWaitHandle"
+                      }, 
+                      "'"
+                    ]
+                  ]
+                }, 
+                "#turn back on requiretty for sudo", 
+                "sed -i 's,#Defaults    requiretty,Defaults    requiretty,g' /etc/sudoers"
+              ]
+            ]
+          }
+        }
+      }, 
+      "Type": "AWS::AutoScaling::LaunchConfiguration"
+    }, 
+    "BackendSecurityGroup": {
+      "Properties": {
+        "GroupDescription": "Allow access from private load balancer and bastion as well as outbound HTTP and HTTPS traffic", 
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "80", 
+            "IpProtocol": "tcp", 
+            "ToPort": "80"
+          }, 
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "443", 
+            "IpProtocol": "tcp", 
+            "ToPort": "443"
+          }
+        ], 
+        "SecurityGroupIngress": [
+          {
+            "FromPort": "8087", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "PrivateLoadBalancerSecurityGroup"
+            }, 
+            "ToPort": "8087"
+          }, 
+          {
+            "FromPort": "8098", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "PrivateLoadBalancerSecurityGroup"
+            }, 
+            "ToPort": "8098"
+          }, 
+          {
+            "FromPort": "22", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "BastionSecurityGroup"
+            }, 
+            "ToPort": "22"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::SecurityGroup"
+    }, 
+    "BackendWaitCondition": {
+      "DependsOn": "BackendFleet", 
+      "Properties": {
+        "Count": {
+          "Ref": "RiakClusterSize"
+        }, 
+        "Handle": {
+          "Ref": "BackendWaitHandle"
+        }, 
+        "Timeout": "600"
+      }, 
+      "Type": "AWS::CloudFormation::WaitCondition"
+    }, 
+    "BackendWaitHandle": {
+      "Type": "AWS::CloudFormation::WaitConditionHandle"
+    }, 
+    "BastionHost": {
+      "DependsOn": [
+        "PublicSubnetRouteTableAssociation", 
+        "PublicSubnetNetworkAclAssociation"
+      ], 
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "ephemeral", 
+            {
+              "Ref": "AWS::Region"
+            }, 
+            {
+              "Fn::FindInMap": [
+                "AWSInstanceType2Arch", 
+                {
+                  "Ref": "BastionInstanceType"
+                }, 
+                "Arch"
+              ]
+            }
+          ]
+        }, 
+        "InstanceType": {
+          "Ref": "BastionInstanceType"
+        }, 
+        "KeyName": {
+          "Ref": "KeyName"
+        }, 
+        "SecurityGroupIds": [
+          {
+            "Ref": "BastionSecurityGroup"
+          }
+        ], 
+        "SubnetId": {
+          "Ref": "PublicSubnet"
+        }
+      }, 
+      "Type": "AWS::EC2::Instance"
+    }, 
+    "BastionIPAddress": {
+      "DependsOn": "GatewayToInternet", 
+      "Properties": {
+        "Domain": "vpc", 
+        "InstanceId": {
+          "Ref": "BastionHost"
+        }
+      }, 
+      "Type": "AWS::EC2::EIP"
+    }, 
+    "BastionSecurityGroup": {
+      "Properties": {
+        "GroupDescription": "Enable access to the Bastion host", 
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": {
+              "Fn::FindInMap": [
+                "SubnetConfig", 
+                "Private", 
+                "CIDR"
+              ]
+            }, 
+            "FromPort": "22", 
+            "IpProtocol": "tcp", 
+            "ToPort": "22"
+          }
+        ], 
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": {
+              "Ref": "SSHFrom"
+            }, 
+            "FromPort": "22", 
+            "IpProtocol": "tcp", 
+            "ToPort": "22"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::SecurityGroup"
+    }, 
+    "CFNInitUser": {
+      "Properties": {
+        "Path": "/", 
+        "Policies": [
+          {
+            "PolicyDocument": {
+              "Statement": [
+                {
+                  "Action": [
+                    "cloudformation:DescribeStackResource", 
+                    "s3:GetObject"
+                  ], 
+                  "Effect": "Allow", 
+                  "Resource": "*"
+                }
+              ]
+            }, 
+            "PolicyName": "AccessForCFNInit"
+          }
+        ]
+      }, 
+      "Type": "AWS::IAM::User"
+    }, 
+    "ClusterCommunication1": {
+      "Properties": {
+        "FromPort": "-1", 
+        "GroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "IpProtocol": "icmp", 
+        "SourceSecurityGroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "ToPort": "-1"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupIngress"
+    }, 
+    "ClusterCommunication2": {
+      "Properties": {
+        "FromPort": "1", 
+        "GroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "IpProtocol": "tcp", 
+        "SourceSecurityGroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "ToPort": "65356"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupIngress"
+    }, 
+    "ClusterCommunication3": {
+      "Properties": {
+        "FromPort": "1", 
+        "GroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "IpProtocol": "udp", 
+        "SourceSecurityGroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "ToPort": "65356"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupIngress"
+    }, 
+    "ClusterCommunication4": {
+      "Properties": {
+        "FromPort": "-1", 
+        "GroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "IpProtocol": "icmp", 
+        "SourceSecurityGroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "ToPort": "-1"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupEgress"
+    }, 
+    "ClusterCommunication5": {
+      "Properties": {
+        "FromPort": "1", 
+        "GroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "IpProtocol": "tcp", 
+        "SourceSecurityGroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "ToPort": "65356"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupEgress"
+    }, 
+    "ClusterCommunication6": {
+      "Properties": {
+        "FromPort": "1", 
+        "GroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "IpProtocol": "udp", 
+        "SourceSecurityGroupId": {
+          "Ref": "BackendSecurityGroup"
+        }, 
+        "ToPort": "65356"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupEgress"
+    }, 
+    "FrontendClustertoBackendClusterCommunication1": {
+      "Properties": {
+        "DestinationSecurityGroupId": {
+          "Ref": "PrivateLoadBalancerSecurityGroup"
+        }, 
+        "FromPort": "8098", 
+        "GroupId": {
+          "Ref": "FrontendSecurityGroup"
+        }, 
+        "IpProtocol": "tcp", 
+        "ToPort": "8098"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupEgress"
+    }, 
+    "FrontendClustertoBackendClusterCommunication2": {
+      "Properties": {
+        "DestinationSecurityGroupId": {
+          "Ref": "PrivateLoadBalancerSecurityGroup"
+        }, 
+        "FromPort": "8087", 
+        "GroupId": {
+          "Ref": "FrontendSecurityGroup"
+        }, 
+        "IpProtocol": "tcp", 
+        "ToPort": "8087"
+      }, 
+      "Type": "AWS::EC2::SecurityGroupEgress"
+    }, 
+    "FrontendFleet": {
+      "Properties": {
+        "AvailabilityZones": [
+          {
+            "Fn::GetAtt": [
+              "PrivateSubnet", 
+              "AvailabilityZone"
+            ]
+          }
+        ], 
+        "DesiredCapacity": {
+          "Ref": "FrontendClusterSize"
+        }, 
+        "LaunchConfigurationName": {
+          "Ref": "FrontendServerLaunchConfig"
+        }, 
+        "LoadBalancerNames": [
+          {
+            "Ref": "PublicElasticLoadBalancer"
+          }
+        ], 
+        "MaxSize": "10", 
+        "MinSize": "1", 
+        "Tags": [
+          {
+            "Key": "Network", 
+            "PropagateAtLaunch": "true", 
+            "Value": "Public"
+          }
+        ], 
+        "VPCZoneIdentifier": [
+          {
+            "Ref": "PrivateSubnet"
+          }
+        ]
+      }, 
+      "Type": "AWS::AutoScaling::AutoScalingGroup"
+    }, 
+    "FrontendSecurityGroup": {
+      "Properties": {
+        "GroupDescription": "Allow access from load balancer and bastion as well as outbound HTTP and HTTPS traffic", 
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "80", 
+            "IpProtocol": "tcp", 
+            "ToPort": "80"
+          }, 
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "443", 
+            "IpProtocol": "tcp", 
+            "ToPort": "443"
+          }
+        ], 
+        "SecurityGroupIngress": [
+          {
+            "FromPort": "80", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "PublicLoadBalancerSecurityGroup"
+            }, 
+            "ToPort": "80"
+          }, 
+          {
+            "FromPort": "443", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "PublicLoadBalancerSecurityGroup"
+            }, 
+            "ToPort": "443"
+          }, 
+          {
+            "FromPort": "22", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "BastionSecurityGroup"
+            }, 
+            "ToPort": "22"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::SecurityGroup"
+    }, 
+    "FrontendServerLaunchConfig": {
+      "DependsOn": "BastionHost", 
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "ephemeral", 
+            {
+              "Ref": "AWS::Region"
+            }, 
+            {
+              "Fn::FindInMap": [
+                "AWSInstanceType2Arch", 
+                {
+                  "Ref": "FrontendInstanceType"
+                }, 
+                "Arch"
+              ]
+            }
+          ]
+        }, 
+        "InstanceType": {
+          "Ref": "FrontendInstanceType"
+        }, 
+        "KeyName": {
+          "Ref": "KeyName"
+        }, 
+        "SecurityGroups": [
+          {
+            "Ref": "FrontendSecurityGroup"
+          }
+        ], 
+        "UserData": {
+          "Fn::Base64": {
+            "Fn::Join": [
+              "\n", 
+              [
+                "#!/bin/bash -v", 
+                "exec > >(tee /var/log/cfn-data.log|logger -t user-data -s 2>/dev/console) 2>&1", 
+                "", 
+                "sleep 10", 
+                "", 
+                "function retry {", 
+                "   nTrys=0", 
+                "   maxTrys=5", 
+                "   status=256", 
+                "   until [ $status == 0 ] ; do", 
+                "      $1", 
+                "      status=$?", 
+                "      nTrys=$(($nTrys + 1))", 
+                "      if [ $nTrys -gt $maxTrys ] ; then", 
+                "            echo \"Number of re-trys exceeded. Exit code: $status\"", 
+                "            exit $status", 
+                "      fi", 
+                "      if [ $status != 0 ] ; then", 
+                "            echo \"Failed (exit code $status)... retry $nTrys\"", 
+                "            sleep 10", 
+                "      fi", 
+                "   done", 
+                "}", 
+                "", 
+                "yum update -y aws-cfn-bootstrap", 
+                "", 
+                "#for all the stuff that complains about sudo and tty", 
+                "sed -i 's,Defaults    requiretty,#Defaults    requiretty,g' /etc/sudoers", 
+                "", 
+                "function error_exit", 
+                "{", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "  /opt/aws/bin/cfn-signal -e 1 -r \"$1\" '", 
+                      {
+                        "Ref": "FrontendWaitHandle"
+                      }, 
+                      "'"
+                    ]
+                  ]
+                }, 
+                "}", 
+                "yum update -y aws-cfn-bootstrap", 
+                "#this runs the first stage of cfinit", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "#/opt/aws/bin/cfn-init -c ascending -v --region ", 
+                      {
+                        "Ref": "AWS::Region"
+                      }, 
+                      " -s ", 
+                      {
+                        "Ref": "AWS::StackName"
+                      }, 
+                      " -r ", 
+                      "FrontendLaunchConfig", 
+                      " --access-key ", 
+                      {
+                        "Ref": "HostKeys"
+                      }, 
+                      " --secret-key ", 
+                      {
+                        "Fn::GetAtt": [
+                          "HostKeys", 
+                          "SecretAccessKey"
+                        ]
+                      }, 
+                      " || error_exit 'Failed to initialize client using cfn-init'"
+                    ]
+                  ]
+                }, 
+                "", 
+                "", 
+                "", 
+                "", 
+                "yum install -y rubygems git puppet ruby-devel make gcc", 
+                "gem install hiera hiera-puppet", 
+                "mkdir -p /var/lib/hiera", 
+                "RIAGI_HOME=/usr/local/riagi", 
+                "", 
+                "git clone https://github.com/jsmartin/riagi $RIAGI_HOME", 
+                "cd $RIAGI_HOME", 
+                "cp django_riak.py /usr/lib/python2.6/site-packages/", 
+                "", 
+                "", 
+                "yum -y install Django14 --enablerepo=epel", 
+                "", 
+                "yum -y install python-imaging python-pip protobuf-c httpd mod_wsgi --enablerepo=epel", 
+                "pip-python install riak", 
+                "pip-python install shortuuid", 
+                "", 
+                "cat << EOF >> /etc/httpd/conf/httpd.conf", 
+                "Alias /static/ $RIAGI_HOME/riagi/static/", 
+                "Alias /media/ $RIAGI_HOME/riagi/media/", 
+                "", 
+                "WSGIScriptAlias / $RIAGI_HOME/riagi/wsgi.py", 
+                "WSGIPythonPath $RIAGI_HOME", 
+                "", 
+                "<Directory $RIAGI_HOME/riagi/>", 
+                "<Files wsgi.py>", 
+                "Order deny,allow", 
+                "Allow from all", 
+                "</Files>", 
+                "</Directory>", 
+                "", 
+                "<Directory $RIAGI_HOME/riagi/static>", 
+                "Order deny,allow", 
+                "Allow from all", 
+                "</Directory>", 
+                "", 
+                "<Directory $RIAGI_HOME/riagi/media>", 
+                "Order deny,allow", 
+                "Allow from all", 
+                "</Directory>", 
+                "EOF", 
+                "", 
+                "mkdir /etc/riagi", 
+                "cat << EOF > /etc/riagi/riak_lb.yaml", 
+                "loadbalancer:", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "    hostname: ", 
+                      {
+                        "Fn::GetAtt": [
+                          "PrivateElasticLoadBalancer", 
+                          "DNSName"
+                        ]
+                      }, 
+                      ""
+                    ]
+                  ]
+                }, 
+                "    port: 8098", 
+                "media:", 
+                "    url:", 
+                "    root:", 
+                "static:", 
+                "    url: /static/", 
+                "    root: $RIAGI_HOME/riagi/static", 
+                "EOF", 
+                "", 
+                "/sbin/service httpd start", 
+                "", 
+                "curl --max-time 120 --retry 3 --retry-max-time 120 localhost|grep basho", 
+                "result_code=$?", 
+                {
+                  "Fn::Join": [
+                    "", 
+                    [
+                      "/opt/aws/bin/cfn-signal -e $result_code '", 
+                      {
+                        "Ref": "FrontendWaitHandle"
+                      }, 
+                      "'"
+                    ]
+                  ]
+                }, 
+                "#turn back on requiretty for sudo", 
+                "sed -i 's,#Defaults    requiretty,Defaults    requiretty,g' /etc/sudoers"
+              ]
+            ]
+          }
+        }
+      }, 
+      "Type": "AWS::AutoScaling::LaunchConfiguration"
+    }, 
+    "FrontendWaitCondition": {
+      "DependsOn": "FrontendFleet", 
+      "Properties": {
+        "Count": {
+          "Ref": "FrontendClusterSize"
+        }, 
+        "Handle": {
+          "Ref": "FrontendWaitHandle"
+        }, 
+        "Timeout": "300"
+      }, 
+      "Type": "AWS::CloudFormation::WaitCondition"
+    }, 
+    "FrontendWaitHandle": {
+      "Type": "AWS::CloudFormation::WaitConditionHandle"
+    }, 
+    "GatewayToInternet": {
+      "Properties": {
+        "InternetGatewayId": {
+          "Ref": "InternetGateway"
+        }, 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::VPCGatewayAttachment"
+    }, 
+    "HostKeys": {
+      "Properties": {
+        "UserName": {
+          "Ref": "CFNInitUser"
+        }
+      }, 
+      "Type": "AWS::IAM::AccessKey"
+    }, 
+    "InboundEmphemeralPublicNetworkAclEntry": {
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0", 
+        "Egress": "false", 
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }, 
+        "PortRange": {
+          "From": "1024", 
+          "To": "65535"
+        }, 
+        "Protocol": "6", 
+        "RuleAction": "allow", 
+        "RuleNumber": "103"
+      }, 
+      "Type": "AWS::EC2::NetworkAclEntry"
+    }, 
+    "InboundHTTPPublicNetworkAclEntry": {
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0", 
+        "Egress": "false", 
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }, 
+        "PortRange": {
+          "From": "80", 
+          "To": "80"
+        }, 
+        "Protocol": "6", 
+        "RuleAction": "allow", 
+        "RuleNumber": "100"
+      }, 
+      "Type": "AWS::EC2::NetworkAclEntry"
+    }, 
+    "InboundHTTPSPublicNetworkAclEntry": {
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0", 
+        "Egress": "false", 
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }, 
+        "PortRange": {
+          "From": "443", 
+          "To": "443"
+        }, 
+        "Protocol": "6", 
+        "RuleAction": "allow", 
+        "RuleNumber": "101"
+      }, 
+      "Type": "AWS::EC2::NetworkAclEntry"
+    }, 
+    "InboundPrivateNetworkAclEntry": {
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0", 
+        "Egress": "false", 
+        "NetworkAclId": {
+          "Ref": "PrivateNetworkAcl"
+        }, 
+        "PortRange": {
+          "From": "0", 
+          "To": "65535"
+        }, 
+        "Protocol": "6", 
+        "RuleAction": "allow", 
+        "RuleNumber": "100"
+      }, 
+      "Type": "AWS::EC2::NetworkAclEntry"
+    }, 
+    "InboundSSHPublicNetworkAclEntry": {
+      "Properties": {
+        "CidrBlock": {
+          "Ref": "SSHFrom"
+        }, 
+        "Egress": "false", 
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }, 
+        "PortRange": {
+          "From": "22", 
+          "To": "22"
+        }, 
+        "Protocol": "6", 
+        "RuleAction": "allow", 
+        "RuleNumber": "102"
+      }, 
+      "Type": "AWS::EC2::NetworkAclEntry"
+    }, 
+    "InternetGateway": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Public"
+          }
+        ]
+      }, 
+      "Type": "AWS::EC2::InternetGateway"
+    }, 
+    "NATDevice": {
+      "Properties": {
+        "ImageId": {
+          "Fn::FindInMap": [
+            "AWSNATAMI", 
+            {
+              "Ref": "AWS::Region"
+            }, 
+            "AMI"
+          ]
+        }, 
+        "InstanceType": {
+          "Ref": "NATInstanceType"
+        }, 
+        "KeyName": {
+          "Ref": "KeyName"
+        }, 
+        "SecurityGroupIds": [
+          {
+            "Ref": "NATSecurityGroup"
+          }
+        ], 
+        "SourceDestCheck": "false", 
+        "SubnetId": {
+          "Ref": "PublicSubnet"
+        }
+      }, 
+      "Type": "AWS::EC2::Instance"
+    }, 
+    "NATIPAddress": {
+      "DependsOn": "GatewayToInternet", 
+      "Properties": {
+        "Domain": "vpc", 
+        "InstanceId": {
+          "Ref": "NATDevice"
+        }
+      }, 
+      "Type": "AWS::EC2::EIP"
+    }, 
+    "NATSecurityGroup": {
+      "Properties": {
+        "GroupDescription": "Enable internal access to the NAT device", 
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "80", 
+            "IpProtocol": "tcp", 
+            "ToPort": "80"
+          }, 
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "443", 
+            "IpProtocol": "tcp", 
+            "ToPort": "443"
+          }
+        ], 
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "80", 
+            "IpProtocol": "tcp", 
+            "ToPort": "80"
+          }, 
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "443", 
+            "IpProtocol": "tcp", 
+            "ToPort": "443"
+          }, 
+          {
+            "CidrIp": {
+              "Ref": "SSHFrom"
+            }, 
+            "FromPort": "22", 
+            "IpProtocol": "tcp", 
+            "ToPort": "22"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::SecurityGroup"
+    }, 
+    "OutBoundPrivateNetworkAclEntry": {
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0", 
+        "Egress": "true", 
+        "NetworkAclId": {
+          "Ref": "PrivateNetworkAcl"
+        }, 
+        "PortRange": {
+          "From": "0", 
+          "To": "65535"
+        }, 
+        "Protocol": "6", 
+        "RuleAction": "allow", 
+        "RuleNumber": "100"
+      }, 
+      "Type": "AWS::EC2::NetworkAclEntry"
+    }, 
+    "OutboundPublicNetworkAclEntry": {
+      "Properties": {
+        "CidrBlock": "0.0.0.0/0", 
+        "Egress": "true", 
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }, 
+        "PortRange": {
+          "From": "0", 
+          "To": "65535"
+        }, 
+        "Protocol": "6", 
+        "RuleAction": "allow", 
+        "RuleNumber": "100"
+      }, 
+      "Type": "AWS::EC2::NetworkAclEntry"
+    }, 
+    "PrivateElasticLoadBalancer": {
+      "Properties": {
+        "HealthCheck": {
+          "HealthyThreshold": "3", 
+          "Interval": "90", 
+          "Target": "HTTP:8098/", 
+          "Timeout": "60", 
+          "UnhealthyThreshold": "5"
+        }, 
+        "Listeners": [
+          {
+            "InstancePort": "8098", 
+            "LoadBalancerPort": "8098", 
+            "Protocol": "HTTP"
+          }, 
+          {
+            "InstancePort": "8087", 
+            "LoadBalancerPort": "8087", 
+            "Protocol": "TCP"
+          }
+        ], 
+        "Scheme": "internal", 
+        "SecurityGroups": [
+          {
+            "Ref": "PrivateLoadBalancerSecurityGroup"
+          }
+        ], 
+        "Subnets": [
+          {
+            "Ref": "PrivateSubnet"
+          }
+        ]
+      }, 
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
+    }, 
+    "PrivateLoadBalancerSecurityGroup": {
+      "Properties": {
+        "GroupDescription": "Private ELB Security Group with access on from the Frontend Fleet only", 
+        "SecurityGroupIngress": [
+          {
+            "FromPort": "8087", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "FrontendSecurityGroup"
+            }, 
+            "ToPort": "8087"
+          }, 
+          {
+            "FromPort": "8098", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "FrontendSecurityGroup"
+            }, 
+            "ToPort": "8098"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::SecurityGroup"
+    }, 
+    "PrivateNetworkAcl": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Private"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::NetworkAcl"
+    }, 
+    "PrivateRoute": {
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0", 
+        "InstanceId": {
+          "Ref": "NATDevice"
+        }, 
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable"
+        }
+      }, 
+      "Type": "AWS::EC2::Route"
+    }, 
+    "PrivateRouteTable": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Private"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::RouteTable"
+    }, 
+    "PrivateSubnet": {
+      "Properties": {
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "SubnetConfig", 
+            "Private", 
+            "CIDR"
+          ]
+        }, 
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Private"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::Subnet"
+    }, 
+    "PrivateSubnetNetworkAclAssociation": {
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PrivateNetworkAcl"
+        }, 
+        "SubnetId": {
+          "Ref": "PrivateSubnet"
+        }
+      }, 
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation"
+    }, 
+    "PrivateSubnetRouteTableAssociation": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PrivateRouteTable"
+        }, 
+        "SubnetId": {
+          "Ref": "PrivateSubnet"
+        }
+      }, 
+      "Type": "AWS::EC2::SubnetRouteTableAssociation"
+    }, 
+    "PublicElasticLoadBalancer": {
+      "Properties": {
+        "HealthCheck": {
+          "HealthyThreshold": "3", 
+          "Interval": "90", 
+          "Target": "HTTP:80/", 
+          "Timeout": "60", 
+          "UnhealthyThreshold": "5"
+        }, 
+        "Listeners": [
+          {
+            "InstancePort": "80", 
+            "LoadBalancerPort": "80", 
+            "Protocol": "HTTP"
+          }
+        ], 
+        "SecurityGroups": [
+          {
+            "Ref": "PublicLoadBalancerSecurityGroup"
+          }
+        ], 
+        "Subnets": [
+          {
+            "Ref": "PublicSubnet"
+          }
+        ]
+      }, 
+      "Type": "AWS::ElasticLoadBalancing::LoadBalancer"
+    }, 
+    "PublicLoadBalancerSecurityGroup": {
+      "Properties": {
+        "GroupDescription": "Public ELB Security Group with HTTP access on port 80 from the internet", 
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "80", 
+            "IpProtocol": "tcp", 
+            "ToPort": "80"
+          }
+        ], 
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "80", 
+            "IpProtocol": "tcp", 
+            "ToPort": "80"
+          }, 
+          {
+            "CidrIp": "0.0.0.0/0", 
+            "FromPort": "443", 
+            "IpProtocol": "tcp", 
+            "ToPort": "443"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::SecurityGroup"
+    }, 
+    "PublicNetworkAcl": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Public"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::NetworkAcl"
+    }, 
+    "PublicRoute": {
+      "Properties": {
+        "DestinationCidrBlock": "0.0.0.0/0", 
+        "GatewayId": {
+          "Ref": "InternetGateway"
+        }, 
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }
+      }, 
+      "Type": "AWS::EC2::Route"
+    }, 
+    "PublicRouteTable": {
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Public"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::RouteTable"
+    }, 
+    "PublicSubnet": {
+      "Properties": {
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "SubnetConfig", 
+            "Public", 
+            "CIDR"
+          ]
+        }, 
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Public"
+          }
+        ], 
+        "VpcId": {
+          "Ref": "VPC"
+        }
+      }, 
+      "Type": "AWS::EC2::Subnet"
+    }, 
+    "PublicSubnetNetworkAclAssociation": {
+      "Properties": {
+        "NetworkAclId": {
+          "Ref": "PublicNetworkAcl"
+        }, 
+        "SubnetId": {
+          "Ref": "PublicSubnet"
+        }
+      }, 
+      "Type": "AWS::EC2::SubnetNetworkAclAssociation"
+    }, 
+    "PublicSubnetRouteTableAssociation": {
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRouteTable"
+        }, 
+        "SubnetId": {
+          "Ref": "PublicSubnet"
+        }
+      }, 
+      "Type": "AWS::EC2::SubnetRouteTableAssociation"
+    }, 
+    "RolePolicies": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ec2:DescribeAvailabilityZones", 
+                "ec2:DescribeInstanceStatus", 
+                "ec2:DescribeInstances", 
+                "ec2:DescribeRegions", 
+                "ec2:DescribeTags"
+              ], 
+              "Effect": "Allow", 
+              "Resource": "*"
+            }
+          ]
+        }, 
+        "PolicyName": "root", 
+        "Roles": [
+          {
+            "Ref": "RootRole"
+          }
+        ]
+      }, 
+      "Type": "AWS::IAM::Policy"
+    }, 
+    "RootInstanceProfile": {
+      "Properties": {
+        "Path": "/", 
+        "Roles": [
+          {
+            "Ref": "RootRole"
+          }
+        ]
+      }, 
+      "Type": "AWS::IAM::InstanceProfile"
+    }, 
+    "RootRole": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "sts:AssumeRole"
+              ], 
+              "Effect": "Allow", 
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com"
+                ]
+              }
+            }
+          ]
+        }, 
+        "Path": "/"
+      }, 
+      "Type": "AWS::IAM::Role"
+    }, 
+    "VPC": {
+      "Properties": {
+        "CidrBlock": {
+          "Fn::FindInMap": [
+            "SubnetConfig", 
+            "VPC", 
+            "CIDR"
+          ]
+        }, 
+        "Tags": [
+          {
+            "Key": "Application", 
+            "Value": {
+              "Ref": "AWS::StackName"
+            }
+          }, 
+          {
+            "Key": "Network", 
+            "Value": "Public"
+          }
+        ]
+      }, 
+      "Type": "AWS::EC2::VPC"
+    }
+  }
+}

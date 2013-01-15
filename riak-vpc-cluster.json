@@ -478,10 +478,8 @@
                 "service riak stop", 
                 "service riak start", 
                 "sleep 5", 
-                "", 
-                "wget http://basho-riaktivate.s3.amazonaws.com/join_riak_cluster.py -O /tmp/join_riak_cluster.py", 
-                "chmod 755 /tmp/join_riak_cluster.py", 
-                "/tmp/join_riak_cluster.py", 
+                "retry \"git clone http://github.com/basho/cloudformation-riak  /tmp/cloudformation-riak\"", 
+                "/tmp/cloudformation-riak/tools/join_riak_cluster.py", 
                 "search-cmd install riagi-users", 
                 "search-cmd install riagi-image-metadata", 
                 "/usr/sbin/riak ping", 
@@ -1041,12 +1039,22 @@
     "PrivateLoadBalancerSecurityGroup": {
       "Properties": {
         "GroupDescription": "Private ELB Security Group", 
-        "SecurityGroupEgress": [
+        "SecurityGroupIngress": [
           {
-            "CidrIp": "0.0.0.0/0", 
-            "FromPort": "80", 
+            "FromPort": "8087", 
             "IpProtocol": "tcp", 
-            "ToPort": "80"
+            "SourceSecurityGroupId": {
+              "Ref": "BastionSecurityGroup"
+            }, 
+            "ToPort": "8087"
+          }, 
+          {
+            "FromPort": "8098", 
+            "IpProtocol": "tcp", 
+            "SourceSecurityGroupId": {
+              "Ref": "BastionSecurityGroup"
+            }, 
+            "ToPort": "8098"
           }
         ], 
         "VpcId": {

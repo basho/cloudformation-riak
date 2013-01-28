@@ -1,7 +1,7 @@
 # Riak AWS CloudFormation Recipes
 
 
-These [Amazon CloudFormation](http://http://aws.amazon.com/cloudformation/) recipes are designed to help you get started quickly with a Riak cluster. They are not for production use. All of these recipes build clusters based on Amazon Linux and should work in any AWS region.
+These [Amazon CloudFormation](http://aws.amazon.com/cloudformation/) recipes are designed to help you get started quickly with a Riak cluster. They are not for production use. All of these recipes build clusters based on Amazon Linux and should work in any AWS region.
 
 The recipes come in 3 flavors: riak cluster, riak vpc cluster, and riak vpc cluster with frontend appservers.
 

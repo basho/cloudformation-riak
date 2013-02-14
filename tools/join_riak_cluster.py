@@ -17,17 +17,14 @@ def get_group_info(ec2conn, instance_id) :
     reservations = ec2conn.get_all_instances(instance_id)
     instance = [i for r in reservations for i in r.instances][0]
     if instance.tags.has_key('aws:autoscaling:groupName'):
-        private_ip, first_node, nodes_total, stack_id, node_number, instance = get_autoscale_info(ec2conn, instance_id)
+        private_ip, first_node, nodes_total, stack_id, node_number, instance = get_autoscale_info(ec2conn, instance)
     elif instance.tags.has_key('stackId'):
-        private_ip, first_node, nodes_total, stack_id, node_number, instance = get_reservation_info(ec2conn, instance_id)
+        private_ip, first_node, nodes_total, stack_id, node_number, instance = get_reservation_info(ec2conn, instance)
     else:
         return None
     return private_ip, first_node, nodes_total, stack_id, node_number, instance
 
-def get_autoscale_info(ec2conn, instance_id) :
-
-    reservations = ec2conn.get_all_instances(instance_id)
-    instance = [i for r in reservations for i in r.instances][0]
+def get_autoscale_info(ec2conn, instance) :
     autoscale_group = instance.tags['aws:autoscaling:groupName']
     private_ip = instance.private_ip_address
     filters = {'tag:aws:autoscaling:groupName': '%s*' % autoscale_group }
@@ -42,10 +39,8 @@ def get_autoscale_info(ec2conn, instance_id) :
     return private_ip, first_node, len(riak_ips), autoscale_group, node_number, instance
 
 
-def get_reservation_info(ec2conn, instance_id) :
+def get_reservation_info(ec2conn, instance) :
     found = False
-    reservations = ec2conn.get_all_instances(instance_id)
-    instance = [i for r in reservations for i in r.instances][0]
     while found != True:
         try:
             stack_id = instance.tags['stackId']

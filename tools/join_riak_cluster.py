@@ -32,7 +32,7 @@ def get_autoscale_info(ec2conn, instance) :
     instances = [i for r in reservations for i in r.instances]
     sorted_instances = sorted(instances, key=lambda i: (i.launch_time, i.id))
     first_node = sorted_instances[0]
-    node_number = [si.id for si in sorted_instances].index(instance.id)
+    node_number = [si.id for si in sorted_instances].index(instance.id) + 1
     return private_ip, first_node, len(sorted_instances), autoscale_group, node_number, instance
 
 

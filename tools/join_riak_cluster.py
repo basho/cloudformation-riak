@@ -57,13 +57,6 @@ def get_reservation_info(ec2conn, instance) :
     instances = [i for r in reservations for i in r.instances]
     for instance in instances:
         first_node = instance.private_ip_address
-
-    filters = {'tag:stackId': stack_id}
-    riak_ips = []
-    reservations = ec2conn.get_all_instances(filters=filters)
-    instances = [i for r in reservations for i in r.instances]
-    for instance in instances:
-        riak_ips.append(instance.private_ip_address)
     return private_ip, first_node, int(nodes_total), stack_id, node_number, instance
 
 def plan_commit(total_nodes):

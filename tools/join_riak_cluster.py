@@ -30,13 +30,10 @@ def get_autoscale_info(ec2conn, instance) :
     filters = {'tag:aws:autoscaling:groupName': '%s*' % autoscale_group }
     reservations = ec2conn.get_all_instances(filters=filters)
     instances = [i for r in reservations for i in r.instances]
-    riak_ips = []
-    for instance in instances:
-        riak_ips.append(instance.private_ip_address)
-    riak_ips.sort()
-    first_node = riak_ips[0]
-    node_number = riak_ips.index(private_ip) + 1
-    return private_ip, first_node, len(riak_ips), autoscale_group, node_number, instance
+    sorted_instances = sorted(instances, key=lambda i: (i.launch_time, i.id))
+    first_node = sorted_instances[0]
+    node_number = sorted_instances.index(instance) + 1
+    return private_ip, first_node, len(sorted_instances), autoscale_group, node_number, instance
 
 
 def get_reservation_info(ec2conn, instance) :

@@ -521,7 +521,7 @@
                 "service riak stop", 
                 "service riak start", 
                 "sleep 5", 
-                "retry \"git clone http://github.com/matheeeny/cloudformation-riak  /tmp/cloudformation-riak\"", 
+                "retry \"git clone http://github.com/basho/cloudformation-riak  /tmp/cloudformation-riak\"", 
                 "/tmp/cloudformation-riak/tools/join_riak_cluster.py", 
                 "search-cmd install riagi-users", 
                 "search-cmd install riagi-image-metadata", 

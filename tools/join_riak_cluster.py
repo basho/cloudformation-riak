@@ -52,8 +52,7 @@ def get_reservation_info(ec2conn, instance) :
     filters = {'tag:stackId': stack_id, 'tag:nodeNumber': '1' }
     reservations = ec2conn.get_all_instances(filters=filters)
     instances = [i for r in reservations for i in r.instances]
-    for instance in instances:
-        first_node = instance.private_ip_address
+    first_node = instances[0]
     return private_ip, first_node, int(nodes_total), stack_id, node_number, instance
 
 def plan_commit(total_nodes):
@@ -99,7 +98,7 @@ private_ip, first_node, nodes_total, stack_id, node_number, instance = get_group
 print "Instance belongs to %s. Finding first node" % stack_id
 print "Node number for this machine is %s." % node_number
 print "Node count for this cluster is %s." % nodes_total
-print "First node in the cluster is %s" % first_node
+print "First node in the cluster is %s" % first_node.private_ip_address
 print "Private IP for this machine is %s." % private_ip
 
 
@@ -113,14 +112,14 @@ if node_count > 1 :
     joined = True
     sys.exit(0)
 
-if private_ip == first_node:
+if private_ip == first_node.private_ip_address:
     print 'This is the first node in the cluster.  Nodes will join it.'
     sys.exit(0)
 
 #looping through the join until I get a successful request
 while joined == False:
-    print "Joining node to node: %s." % first_node
-    cmd = ["riak-admin", "cluster",  "join", "riak@%s" % first_node]
+    print "Joining node to node: %s." % first_node.private_ip_address
+    cmd = ["riak-admin", "cluster",  "join", "riak@%s" % first_node.private_ip_address]
     output = runcmd(" ".join(cmd))
     print output
     if output.find('Success: staged join request') != -1:

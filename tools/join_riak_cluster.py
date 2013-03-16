@@ -102,7 +102,7 @@ print "First node in the cluster is %s" % first_node.private_ip_address
 print "Private IP for this machine is %s." % private_ip
 
 
-output = runcmd ('riak-admin member-status|grep ^valid|wc -l')
+output = runcmd ('riak-admin member-status 2> /dev/null | grep ^valid|wc -l')
 node_count = int(output)
 print "Current node count is %s" % str(node_count)
 joined = False

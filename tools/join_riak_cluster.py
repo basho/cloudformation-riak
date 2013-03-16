@@ -17,35 +17,27 @@ def get_group_info(ec2conn, instance_id) :
     reservations = ec2conn.get_all_instances(instance_id)
     instance = [i for r in reservations for i in r.instances][0]
     if instance.tags.has_key('aws:autoscaling:groupName'):
-        private_ip, first_node, riak_ips, nodes_total, stack_id, node_number, instance = get_autoscale_info(ec2conn, instance_id)
+        private_ip, first_node, nodes_total, stack_id, node_number, instance = get_autoscale_info(ec2conn, instance)
     elif instance.tags.has_key('stackId'):
-        private_ip, first_node, riak_ips, nodes_total, stack_id, node_number, instance = get_reservation_info(ec2conn, instance_id)
+        private_ip, first_node, nodes_total, stack_id, node_number, instance = get_reservation_info(ec2conn, instance)
     else:
         return None
-    return private_ip, first_node, riak_ips, nodes_total, stack_id, node_number, instance
+    return private_ip, first_node, nodes_total, stack_id, node_number, instance
 
-def get_autoscale_info(ec2conn, instance_id) :
-
-    reservations = ec2conn.get_all_instances(instance_id)
-    instance = [i for r in reservations for i in r.instances][0]
+def get_autoscale_info(ec2conn, instance) :
     autoscale_group = instance.tags['aws:autoscaling:groupName']
     private_ip = instance.private_ip_address
     filters = {'tag:aws:autoscaling:groupName': '%s*' % autoscale_group }
     reservations = ec2conn.get_all_instances(filters=filters)
     instances = [i for r in reservations for i in r.instances]
-    riak_ips = []
-    for instance in instances:
-        riak_ips.append(instance.private_ip_address)
-    riak_ips.sort()
-    first_node = riak_ips[0]
-    node_number = riak_ips.index(private_ip) + 1
-    return private_ip, first_node, riak_ips, len(riak_ips), autoscale_group, node_number, instance
+    sorted_instances = sorted(instances, key=lambda i: (i.launch_time, i.id))
+    first_node = sorted_instances[0]
+    node_number = [si.id for si in sorted_instances].index(instance.id) + 1
+    return private_ip, first_node, len(sorted_instances), autoscale_group, node_number, instance
 
 
-def get_reservation_info(ec2conn, instance_id) :
+def get_reservation_info(ec2conn, instance) :
     found = False
-    reservations = ec2conn.get_all_instances(instance_id)
-    instance = [i for r in reservations for i in r.instances][0]
     while found != True:
         try:
             stack_id = instance.tags['stackId']
@@ -60,16 +52,8 @@ def get_reservation_info(ec2conn, instance_id) :
     filters = {'tag:stackId': stack_id, 'tag:nodeNumber': '1' }
     reservations = ec2conn.get_all_instances(filters=filters)
     instances = [i for r in reservations for i in r.instances]
-    for instance in instances:
-        first_node = instance.private_ip_address
-
-    filters = {'tag:stackId': stack_id}
-    riak_ips = []
-    reservations = ec2conn.get_all_instances(filters=filters)
-    instances = [i for r in reservations for i in r.instances]
-    for instance in instances:
-        riak_ips.append(instance.private_ip_address)
-    return private_ip, first_node, riak_ips, int(nodes_total), stack_id, node_number, instance
+    first_node = instances[0]
+    return private_ip, first_node, int(nodes_total), stack_id, node_number, instance
 
 def plan_commit(total_nodes):
     ready = False
@@ -109,12 +93,12 @@ region_name = zone[:-1]
 
 print "Connecting to region %s" % region_name
 ec2conn = ec2.connect_to_region(region_name)
-private_ip, first_node, riak_ips, nodes_total, stack_id, node_number, instance = get_group_info(ec2conn, instance_id)
+private_ip, first_node, nodes_total, stack_id, node_number, instance = get_group_info(ec2conn, instance_id)
 
 print "Instance belongs to %s. Finding first node" % stack_id
 print "Node number for this machine is %s." % node_number
 print "Node count for this cluster is %s." % nodes_total
-print "First node in the cluster is %s" % first_node
+print "First node in the cluster is %s" % first_node.private_ip_address
 print "Private IP for this machine is %s." % private_ip
 
 
@@ -128,14 +112,14 @@ if node_count > 1 :
     joined = True
     sys.exit(0)
 
-if private_ip == first_node:
+if private_ip == first_node.private_ip_address:
     print 'This is the first node in the cluster.  Nodes will join it.'
     sys.exit(0)
 
 #looping through the join until I get a successful request
 while joined == False:
-    print "Joining node to node: %s." % first_node
-    cmd = ["riak-admin", "cluster",  "join", "riak@%s" % first_node]
+    print "Joining node to node: %s." % first_node.private_ip_address
+    cmd = ["riak-admin", "cluster",  "join", "riak@%s" % first_node.private_ip_address]
     output = runcmd(" ".join(cmd))
     print output
     if output.find('Success: staged join request') != -1:

@@ -27,7 +27,7 @@ def get_group_info(ec2conn, instance_id) :
 def get_autoscale_info(ec2conn, instance) :
     autoscale_group = instance.tags['aws:autoscaling:groupName']
     private_ip = instance.private_ip_address
-    filters = {'tag:aws:autoscaling:groupName': '%s*' % autoscale_group }
+    filters = {'tag:aws:autoscaling:groupName': '%s*' % autoscale_group, 'instance-state-name': 'running'}
     reservations = ec2conn.get_all_instances(filters=filters)
     instances = [i for r in reservations for i in r.instances]
     sorted_instances = sorted(instances, key=lambda i: (i.launch_time, i.id))
